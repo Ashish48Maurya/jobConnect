@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -5,80 +6,27 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import {
-  Briefcase,
   Search,
-  MoreHorizontal,
   Building2,
-  User,
-  BarChart,
-  FileText,
-  Bell,
-  Settings,
-  LogOut,
-  BookmarkCheck,
-  Clock,
-  CheckCircle,
-  XCircle,
 } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function page() {
+  const navigate = useRouter()
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const user = JSON.parse(localStorage.getItem("user"))
+      if (user.role !== "job-seeker") {
+        navigate.push("/")
+      }
+    }
+  }, []);
+
   return (
     <div className="flex min-h-screen">
-      {/* Main Content */}
       <div className="flex flex-col flex-1">
-        {/* Mobile Header */}
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] md:hidden">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <Briefcase className="h-5 w-5" />
-            <span>JobConnect</span>
-          </Link>
-          <div className="ml-auto flex items-center gap-4">
-            <Link href="/notifications">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-1 top-1 flex h-2 w-2 rounded-full bg-primary"></span>
-                <span className="sr-only">Notifications</span>
-              </Button>
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Avatar" />
-                    <AvatarFallback>JD</AvatarFallback>
-                  </Avatar>
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Dashboard</DropdownMenuItem>
-                <DropdownMenuItem>Find Jobs</DropdownMenuItem>
-                <DropdownMenuItem>My Applications</DropdownMenuItem>
-                <DropdownMenuItem>Saved Jobs</DropdownMenuItem>
-                <DropdownMenuItem>My Profile</DropdownMenuItem>
-                <DropdownMenuItem>Notifications</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        {/* Dashboard Content */}
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

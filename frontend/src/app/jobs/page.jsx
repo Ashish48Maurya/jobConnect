@@ -1,7 +1,6 @@
 "use client"
 
-import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,9 +19,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
+import { useRouter } from "next/navigation"
 
 export default function JobsPage() {
+  const navigate = useRouter()
   const [openJobId, setOpenJobId] = useState(null)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const user = JSON.parse(localStorage.getItem("user"))
+      if (user.role !== "job-seeker") {
+        navigate.push("/")
+      }
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen">
