@@ -12,6 +12,10 @@ app.use(express.json())
 app.use('/api/user',userRoutes)
 app.use('/api',jobRoutes)
 
+app.get('/test', (req, res) => {
+    res.send("Hello from server")
+})
+
 app.listen(PORT, async() => {
     await mongoConnect(process.env.MONGO_URL);
     console.log(`Server is running on port ${PORT}`);
