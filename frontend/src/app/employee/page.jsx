@@ -7,29 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  Briefcase,
-  Plus,
-  MoreHorizontal,
-  Building2,
-  Users,
-  BarChart,
-  FileText,
-  Bell,
-  Settings,
-  LogOut,
-  ChevronRight,
-  Download,
-  Eye,
-} from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Plus, FileText, Download } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -38,83 +16,71 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import toast from "react-hot-toast"
 
-const applicants = [
-  {
-    id: 1,
-    name: "Alex Johnson",
-    position: "Senior Frontend Developer",
-    timeAgo: "2h ago",
-    avatar: "/placeholder.svg?height=40&width=40&text=AJ",
-    about:
-      "I'm a passionate frontend developer with 5+ years of experience building responsive web applications. I specialize in React, TypeScript, and modern CSS frameworks.",
-    experience:
-      "• Senior Frontend Developer at TechCorp (2020-Present)\n• Frontend Developer at WebSolutions (2018-2020)\n• Junior Developer at StartupXYZ (2016-2018)",
-    resumeUrl: "#",
-  },
-  {
-    id: 2,
-    name: "Sam Rivera",
-    position: "Senior Frontend Developer",
-    timeAgo: "5h ago",
-    avatar: "/placeholder.svg?height=40&width=40&text=SR",
-    about:
-      "Full-stack developer with a focus on frontend technologies. I enjoy creating intuitive user interfaces and have experience with large-scale applications.",
-    experience:
-      "• Lead Developer at InnovateTech (2019-Present)\n• Full-Stack Developer at GlobalSoft (2017-2019)\n• Web Developer Intern at TechStart (2016-2017)",
-    resumeUrl: "#",
-  },
-  {
-    id: 3,
-    name: "Taylor Kim",
-    position: "Senior Frontend Developer",
-    timeAgo: "8h ago",
-    avatar: "/placeholder.svg?height=40&width=40&text=TK",
-    about:
-      "Frontend specialist with a background in UX/UI design. I bring both technical skills and design sensibility to create exceptional user experiences.",
-    experience:
-      "• Frontend Engineer at DesignTech (2021-Present)\n• UI Developer at CreativeSolutions (2018-2021)\n• UX/UI Designer at DigitalAgency (2016-2018)",
-    resumeUrl: "#",
-  },
-  {
-    id: 4,
-    name: "Jordan Patel",
-    position: "Senior Frontend Developer",
-    timeAgo: "12h ago",
-    avatar: "/placeholder.svg?height=40&width=40&text=JP",
-    about:
-      "Experienced developer focused on creating accessible, performant web applications. I'm passionate about web standards and modern JavaScript frameworks.",
-    experience:
-      "• Senior Developer at AccessibleWeb (2020-Present)\n• Frontend Developer at TechInnovate (2018-2020)\n• Web Developer at CodeCraft (2016-2018)",
-    resumeUrl: "#",
-  },
-  {
-    id: 5,
-    name: "Morgan Lee",
-    position: "Senior Frontend Developer",
-    timeAgo: "1d ago",
-    avatar: "/placeholder.svg?height=40&width=40&text=ML",
-    about:
-      "Frontend developer with a strong focus on performance optimization and modern JavaScript frameworks. I enjoy solving complex UI challenges.",
-    experience:
-      "• Performance Engineer at FastWeb (2019-Present)\n• Frontend Developer at OptimizeTech (2017-2019)\n• Junior Developer at WebCraft (2015-2017)",
-    resumeUrl: "#",
-  },
-]
+function ApplicationViewer({ applicant, listParticipants }) {
+  const [loading, setLoading] = useState('false')
+  const [loading1, setLoading1] = useState('false')
 
+  const accept = async (jobId, applicantId) => {
+    setLoading(true);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/accept-application/${jobId}/${applicantId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        email: applicant.email,
+        name: applicant.name,
+        role: applicant.jobTitle,
+      })
+    })
+    const data = await response.json()
+    if (response.ok) {
+      toast.success(data.message)
+      setLoading(false);
+      listParticipants()
+    } else {
+      setLoading(false);
+      toast.error(data.message)
+    }
+  }
 
-function ApplicationViewer({ applicant }) {
+  const reject = async (jobId, applicantId) => {
+    setLoading1(true);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/reject-application/${jobId}/${applicantId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        email: applicant.email,
+        name: applicant.name,
+        role: applicant.jobTitle,
+      })
+    })
+    const data = await response.json()
+    if (response.ok) {
+      toast.success(data.message)
+      setLoading1(false);
+      listParticipants()
+    } else {
+      setLoading1(false);
+      toast.error(data.message)
+    }
+  }
+
   return (
     <DialogContent className="sm:max-w-[600px]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={applicant.avatar} alt={applicant.name} />
+            <AvatarImage alt={applicant.name} />
             <AvatarFallback>
               {applicant.name
                 .split(" ")
@@ -125,14 +91,14 @@ function ApplicationViewer({ applicant }) {
           <span>{applicant.name}</span>
         </DialogTitle>
         <DialogDescription>
-          Applied for: {applicant.position} • {applicant.timeAgo}
+          Applied for: {applicant.jobTitle} • {new Date(applicant.appliedAt).toLocaleString()}
         </DialogDescription>
       </DialogHeader>
       <ScrollArea className="max-h-[60vh]">
         <div className="space-y-6 px-1 py-2">
           <div>
             <h3 className="text-sm font-medium text-primary mb-2">Tell me about yourself</h3>
-            <p className="text-sm text-muted-foreground">{applicant.about}</p>
+            <p className="text-sm text-muted-foreground">{applicant.description}</p>
           </div>
           <Separator />
           <div>
@@ -147,24 +113,24 @@ function ApplicationViewer({ applicant }) {
                 <FileText className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm">{applicant.name} - Resume.pdf</span>
               </div>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
+              <a href={applicant.resume} download target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </Button>
+              </a>
             </div>
           </div>
         </div>
       </ScrollArea>
       <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
-        <Button variant="outline" className="sm:mr-auto">
-          <Eye className="h-4 w-4 mr-2" />
-          View Full Profile
+        <Button variant="destructive" onClick={() => reject(applicant.jobId, applicant.applicantId)} disabled={loading1} className="sm:mr-auto">
+          {loading1 ? "Rejecting..." : "Reject Application"}
         </Button>
         <div className="flex gap-2">
-          <DialogClose asChild>
-            <Button variant="outline">Close</Button>
-          </DialogClose>
-          <Button>Contact Applicant</Button>
+          <Button onClick={() => accept(applicant.jobId, applicant.applicantId)} disabled={loading}>{
+            loading ? "Accepting..." : "Accept Application"}
+          </Button>
         </div>
       </DialogFooter>
     </DialogContent>
@@ -173,78 +139,89 @@ function ApplicationViewer({ applicant }) {
 
 export default function page() {
   const [data, setData] = useState([])
+  const [participant, setParticipant] = useState([])
   const [selectedApplicant, setSelectedApplicant] = useState(null)
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false)
+
+  const listParticipants = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/posted-jobs`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+    const data = await response.json()
+    if (response.ok) {
+      setParticipant(data.jobs[0].participants)
+    } else {
+      toast.error(data.message || "Failed to fetch jobs")
+    }
+  }
 
   const getAllJobs = async () => {
     const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/jobs`, {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${localStorage.getItem("token")}`
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-    });
-    const data = await response.json();
+    })
+    const data = await response.json()
     if (response.ok) {
-      setData(data.jobs);
-      console.log(data.jobs)
+      setData(data.jobs)
     } else {
-      toast.error(data.message || "Failed to fetch jobs");
+      toast.error(data.message || "Failed to fetch jobs")
     }
   }
 
   const handleDelete = async (jobId) => {
-    const confirmed = window.confirm("Are you sure you want to delete this job?");
-    if (!confirmed) return;
+    const confirmed = window.confirm("Are you sure you want to delete this job?")
+    if (!confirmed) return
     try {
-      setLoading(true);
+      setLoading(true)
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/job/${jobId}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      });
-      const data = await res.json();
+      })
+      const data = await res.json()
       if (res.ok) {
-        toast.success("Job deleted successfully");
+        toast.success("Job deleted successfully")
         getAllJobs()
       } else {
-        toast.error(data.message);
+        toast.error(data.message)
       }
     } catch (error) {
       console.log(error.message)
-      toast.error("An error occurred while deleting the job");
+      toast.error("An error occurred while deleting the job")
+    } finally {
+      setLoading(false)
     }
-    finally {
-      setLoading(false);
-    }
-  };
+  }
 
   useEffect(() => {
     getAllJobs()
+    listParticipants()
   }, [])
 
   const getDaysAgo = (createdAt) => {
-    const createdDate = new Date(createdAt);
-    const now = new Date();
-    const timeDiff = now - createdDate;
-    const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-    console.log(daysAgo)
-    return daysAgo;
-  };
+    const createdDate = new Date(createdAt)
+    const now = new Date()
+    const timeDiff = now - createdDate
+    const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24))
+    return daysAgo
+  }
 
   const isApplicationClosed = (deadline) => {
-    const now = new Date();
-    const deadlineDate = new Date(deadline);
-    return now > deadlineDate;
-  };
-
+    const now = new Date()
+    const deadlineDate = new Date(deadline)
+    return now > deadlineDate
+  }
 
   return (
     <div className="flex min-h-screen bg-muted/10">
-
       {/* Main Content */}
       <div className="flex flex-col flex-1">
-
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <div className="mx-auto max-w-7xl space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -268,8 +245,8 @@ export default function page() {
               </TabsList>
 
               <TabsContent value="jobs" className="space-y-4">
-                {
-                  data.length === 0 ? <>
+                {data.length === 0 ? (
+                  <>
                     <Card className="text-center p-6">
                       <CardHeader>
                         <CardTitle>No Job Postings Found</CardTitle>
@@ -284,7 +261,9 @@ export default function page() {
                         </Button>
                       </CardFooter>
                     </Card>
-                  </> : <>
+                  </>
+                ) : (
+                  <>
                     <Card>
                       <CardHeader>
                         <CardTitle>Recent Job Postings</CardTitle>
@@ -309,20 +288,15 @@ export default function page() {
 
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <span>
-                                    Posted {getDaysAgo(job.createdAt)} day{getDaysAgo(job.createdAt) !== 1 ? "s" : ""} ago
+                                    Posted {getDaysAgo(job.createdAt)} day{getDaysAgo(job.createdAt) !== 1 ? "s" : ""}{" "}
+                                    ago
                                   </span>
                                   <span>•</span>
                                   <span>{job.participants?.length} applicants</span>
                                 </div>
                                 <div className="flex gap-2 mt-1">
-
-                                  <Badge variant="outline">
-                                    {job.jobType}
-                                  </Badge>
-                                  <Badge variant="outline">
-                                    {job.locationType}
-                                  </Badge>
-
+                                  <Badge variant="outline">{job.jobType}</Badge>
+                                  <Badge variant="outline">{job.locationType}</Badge>
                                 </div>
 
                                 <p className="text-sm text-muted-foreground">
@@ -336,62 +310,89 @@ export default function page() {
                                     Edit
                                   </Button>
                                 </Link>
-                                <Button variant="destructive" size="sm" onClick={() => handleDelete(job._id)} disabled={loading}>
-                                  {
-                                    loading ? "Deleting..." : "Delete"
-                                  }
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDelete(job._id)}
+                                  disabled={loading}
+                                >
+                                  {loading ? "Deleting..." : "Delete"}
                                 </Button>
                               </div>
                             </div>
                           ))}
                         </div>
                       </CardContent>
-
                     </Card>
                   </>
-                }
+                )}
               </TabsContent>
 
               <TabsContent value="applicants" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Applicants</CardTitle>
-                    <CardDescription>Latest candidates who applied to your jobs</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {applicants.map((applicant) => (
-                        <div key={applicant.id} className="flex items-center gap-4 p-3 rounded-lg border shadow-sm">
-                          <Avatar>
-                            <AvatarImage src={applicant.avatar} alt={applicant.name} />
-                            <AvatarFallback>
-                              {applicant.name
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium">{applicant.name}</p>
-                              <span className="text-xs text-muted-foreground">{applicant.timeAgo}</span>
+                <div className="space-y-4">
+                  {participant.length === 0 ? (
+                    <Card className="w-full">
+                      <CardHeader>
+                        <CardTitle>No Applicants Found</CardTitle>
+                        <CardDescription>Start posting jobs to see applicants here</CardDescription>
+                      </CardHeader>
+                      <CardContent className="text-center">
+                        <p className="text-muted-foreground">
+                          No applicants found. Start posting jobs to see them here.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Recent Applicants</CardTitle>
+                        <CardDescription>Latest candidates who applied to your jobs</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {participant.map((applicant) => (
+                          <div
+                            key={applicant.applicantId}
+                            className="flex items-center gap-4 p-3 rounded-lg border shadow-sm"
+                          >
+                            <Avatar>
+                              <AvatarImage alt={applicant.name} />
+                              <AvatarFallback>
+                                {applicant.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium">{applicant.name}</p>
+                                <span className="text-xs my-auto text-muted-foreground">
+                                  {new Date(applicant.appliedAt).toLocaleString()}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">Applied for: {applicant.jobTitle}</p>
                             </div>
-                            <p className="text-xs text-muted-foreground">Applied for: {applicant.position}</p>
+                            <Dialog>
+                              <span>
+                                {applicant.status === "Accepted"
+                                  ? "Accepted"
+                                  : applicant.status === "Rejected"
+                                    ? "Rejected"
+                                    : "In Review"}
+                              </span>
+                              <DialogTrigger asChild>
+                                <Button variant="outline" size="sm" onClick={() => setSelectedApplicant(applicant)}>
+                                  View Application
+                                </Button>
+                              </DialogTrigger>
+                              <ApplicationViewer applicant={applicant} listParticipants={listParticipants} />
+                            </Dialog>
                           </div>
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm" onClick={() => setSelectedApplicant(applicant)}>
-                                View Application
-                              </Button>
-                            </DialogTrigger>
-                            <ApplicationViewer applicant={applicant} />
-                          </Dialog>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-
-                </Card>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
           </div>

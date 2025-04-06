@@ -1,6 +1,8 @@
 const Applicant = require("../../models/applicants");
 const Job = require("../../models/jobs");
 const User = require("../../models/user");
+const sendAcceptanceEmail = require("../../utils/accept");
+const sendRejectionEmail = require("../../utils/reject");
 
 const postJob = async (req, res) => {
     const userID = req.userID;
@@ -227,8 +229,133 @@ const getAppliedJobs = async (req, res) => {
     }
 };
 
+const listParticipants = async (req, res) => {
+    const userID = req.userID;
+
+    try {
+        const user = await User.findById(userID);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const postedJobs = user.postedJob; // array of job IDs
+
+        const participantsData = await Promise.all(
+            postedJobs.map(async (jobId) => {
+                const applicants = await Applicant.find({ job: jobId })
+                    .populate('user', 'name email')
+                    .populate('job', 'jobTitle')
+                    .select('status createdAt desc exp resume');
+
+                return {
+                    participants: applicants.map(app => ({
+                        jobId,
+                        jobTitle: applicants[0]?.job?.jobTitle || 'Untitled',
+                        name: app.user.name,
+                        email: app.user.email,
+                        status: app.status,
+                        appliedAt: app.createdAt,
+                        description: app.desc,
+                        experience: app.exp,
+                        resume: app.resume,
+                        applicantId: app._id,
+                    }))
+                };
+            })
+        );
+
+        return res.status(200).json({
+            message: 'Participants fetched successfully',
+            jobs: participantsData
+        });
+
+    } catch (err) {
+        console.error(err.message);
+        return res.status(500).json({
+            message: 'Server error while fetching participants',
+        });
+    }
+};
 
 
+const acceptApplication = async (req, res) => {
+    const userID = req.userID;
+    const {email,name,role} = req.body
+    try {
+        const user = await User.findById(userID);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (user.role !== "employer") {
+            return res.status(401).json({ message: "You are not authorized to post a job" });
+        }
+
+        const jobId = req.params.id.toString();
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+        const applicantId = req.params.applicantId.toString();
+        const applicant = await Applicant.findById(applicantId);
+        if (!applicant) {
+            return res.status(404).json({ message: "Applicant not found" });
+        }
+        if (applicant.status === "Accepted") {
+            return res.status(400).json({ message: "Applicant already accepted" });
+        }
+        applicant.status = "Accepted";
+        await applicant.save();
+        await sendAcceptanceEmail(email, name, role)
+
+        return res.status(200).json({ message: "Application accepted successfully" });
+    } catch (err) {
+        console.error(err.message);
+        return res.status(500).json({
+            message: 'Server error while fetching participants',
+        });
+    }
+}
+
+const rejectApplication = async (req, res) => {
+    const userID = req.userID;
+    const {email,name,role} = req.body
+    try {
+        const user = await User.findById(userID);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        if (user.role !== "employer") {
+            return res.status(401).json({ message: "You are not authorized to post a job" });
+        }
+
+        const jobId = req.params.id.toString();
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({ message: "Job not found" });
+        }
+        const applicantId = req.params.applicantId.toString();
+        const applicant = await Applicant.findById(applicantId);
+        if (!applicant) {
+            return res.status(404).json({ message: "Applicant not found" });
+        }
+        if (applicant.status === "Rejected") {
+            return res.status(400).json({ message: "Applicant already rejected" });
+        }
+        applicant.status = "Rejected";
+        await applicant.save();
+        await sendRejectionEmail(email, name, role)
+
+        return res.status(200).json({ message: "Application rejected successfully" });
+    } catch (err) {
+        console.error(err.message);
+        return res.status(500).json({
+            message: 'Server error while fetching participants',
+        });
+    }
+}
 
 module.exports = {
     postJob,
@@ -238,5 +365,8 @@ module.exports = {
     deleteJob,
     getAllJobs,
     applyJob,
-    getAppliedJobs
+    getAppliedJobs,
+    listParticipants,
+    acceptApplication,
+    rejectApplication
 }
