@@ -309,7 +309,7 @@ const acceptApplication = async (req, res) => {
         await applicant.save();
         await sendAcceptanceEmail(email, name, role)
 
-        return res.status(200).json({ message: "Application accepted successfully" });
+        return res.status(200).json({ message: "Application accepted and email sent successfully " });
     } catch (err) {
         console.error(err.message);
         return res.status(500).json({
@@ -348,7 +348,7 @@ const rejectApplication = async (req, res) => {
         await applicant.save();
         await sendRejectionEmail(email, name, role)
 
-        return res.status(200).json({ message: "Application rejected successfully" });
+        return res.status(200).json({ message: "Application rejected and email sent successfully" });
     } catch (err) {
         console.error(err.message);
         return res.status(500).json({

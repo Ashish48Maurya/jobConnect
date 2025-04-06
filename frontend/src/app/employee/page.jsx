@@ -22,8 +22,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import toast from "react-hot-toast"
 
 function ApplicationViewer({ applicant, listParticipants }) {
-  const [loading, setLoading] = useState('false')
-  const [loading1, setLoading1] = useState('false')
+  const [loading, setLoading] = useState(false)
+  const [loading1, setLoading1] = useState(false)
 
   const accept = async (jobId, applicantId) => {
     setLoading(true);

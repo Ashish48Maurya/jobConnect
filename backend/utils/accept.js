@@ -43,7 +43,6 @@ const getEmailHtml = (name, role) => `
       <p>
         Someone from our team will be in touch shortly to guide you through the next steps.
       </p>
-      <a href="{{nextStepsLink}}" class="btn">View Next Steps</a>
       <p style="margin-top: 30px;">Best regards,<br />The Hiring Team</p>
     </div>
   </body>
