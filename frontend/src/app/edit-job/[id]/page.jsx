@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
 
 export default function page({ params }) {
+    const { id } = use(params);
     const navigate = useRouter()
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -40,7 +41,7 @@ export default function page({ params }) {
 
     const func = async () => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/job/${params.id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/job/${id}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -62,8 +63,10 @@ export default function page({ params }) {
     }
 
     useEffect(() => {
-        func()
-    }, [params?.id])
+        if (!id) return;
+        func();
+    }, [id]);
+
 
     const handleChange = (e) => {
         const { id, value } = e.target
@@ -85,7 +88,7 @@ export default function page({ params }) {
                     .map(skill => skill.trim())
                     .filter(skill => skill.length > 0)
             };
-            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/job/${params.id}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/job/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

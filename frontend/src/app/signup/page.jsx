@@ -18,10 +18,12 @@ export default function page() {
   const [lastName, setLastName] = useState("")
   const [showPassword, setShowPassword] = useState(false) // 👁️
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  
   const handleSignUp = async (event) => {
     event.preventDefault()
     setLoading(true)
     if (password !== confirmPassword) {
+      setLoading(false)
       toast.error("Passwords do not match")
       return
     }
@@ -47,9 +49,12 @@ export default function page() {
         window.location.href = "/"
       } else {
         toast.error(data.message)
+        setLoading(false) 
+        return
       }
     }
     catch (err) {
+      setLoading(false)
       toast.error("An error occurred while creating the user")
     }
     finally {

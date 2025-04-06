@@ -109,11 +109,11 @@ export default function PostJobPage() {
                       <SelectValue placeholder="Select job type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="full-time">Full-time</SelectItem>
-                      <SelectItem value="part-time">Part-time</SelectItem>
-                      <SelectItem value="contract">Contract</SelectItem>
-                      <SelectItem value="freelance">Freelance</SelectItem>
-                      <SelectItem value="internship">Internship</SelectItem>
+                      <SelectItem value="Full-time">Full-time</SelectItem>
+                      <SelectItem value="Part-time">Part-time</SelectItem>
+                      <SelectItem value="Contract">Contract</SelectItem>
+                      <SelectItem value="Freelance">Freelance</SelectItem>
+                      <SelectItem value="Internship">Internship</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -124,9 +124,9 @@ export default function PostJobPage() {
                       <SelectValue placeholder="Select location type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="remote">Remote</SelectItem>
-                      <SelectItem value="on-site">On-site</SelectItem>
-                      <SelectItem value="hybrid">Hybrid</SelectItem>
+                      <SelectItem value="Remote">Remote</SelectItem>
+                      <SelectItem value="On-site">On-site</SelectItem>
+                      <SelectItem value="Hybrid">Hybrid</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -154,7 +154,6 @@ export default function PostJobPage() {
             </div>
           </div>
 
-          {/* Job Description */}
           <div className="space-y-4 p-6 border rounded-lg">
             <h2 className="text-xl font-semibold">Job Description</h2>
             <div className="space-y-2">

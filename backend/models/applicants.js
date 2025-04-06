@@ -1,37 +1,38 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const userSchema = new Schema({
-    name: {
+
+const applicantSchema = new Schema({
+    desc: {
         type: String,
         required: true,
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    password: {
+    exp: {
         type: String,
         required: true,
     },
-    role: {
+    resume: {
         type: String,
         required: true,
     },
-    postedJob: [{
+    status: {
+        type: String,
+        default: "in-review",
+    },
+    user: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    job: {
         type: Schema.Types.ObjectId,
         ref: 'Job',
         required: true,
-    }],
-    applied_job: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Applicant',
-        required: true,
-    }],
+    },
     createdAt: {
         type: Date,
         default: Date.now,
-    },
+    }
 });
-const User = mongoose.model('User', userSchema);
-module.exports = User;
+
+const Applicant = mongoose.model('Applicant', applicantSchema);
+module.exports = Applicant;

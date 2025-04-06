@@ -3,17 +3,18 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
 import {
   Search,
   Building2,
 } from "lucide-react"
 
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import toast from "react-hot-toast"
 
 export default function page() {
+
+  const [data, setData] = useState([])
   const navigate = useRouter()
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -23,6 +24,27 @@ export default function page() {
       }
     }
   }, []);
+
+  const fetchJobs = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/applied-job`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+    const data = await response.json()
+    if (response.ok) {
+      setData(data.jobs)
+      console.log(data.jobs)
+    } else {
+      toast.error(data.message)
+    }
+  }
+
+  useEffect(() => {
+    fetchJobs()
+  }, [])
 
   return (
     <div className="flex min-h-screen">
@@ -43,58 +65,66 @@ export default function page() {
               </div>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Applications</CardTitle>
-                <CardDescription>Track the status of your recent job applications</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[
-                    { company: "Tech Corp", position: "Senior Frontend Developer", status: "Applied", days: 2 },
-                    { company: "Design Studio", position: "UI/UX Designer", status: "Applied", days: 5 },
-                    { company: "Software Inc", position: "Full Stack Developer", status: "Applied", days: 1 },
-                    { company: "Marketing Agency", position: "Web Developer", status: "Rejected", days: 10 },
-                    { company: "Startup XYZ", position: "React Developer", status: "Applied", days: 3 },
-                  ].map((application, index) => (
-                    <div key={index} className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                          <Building2 className="h-5 w-5 text-muted-foreground" />
+            {
+              data.length === 0 ? <>
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle>No Applications Found</CardTitle>
+                    <CardDescription>Start applying for jobs to see them here</CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-center">
+                    <p className="text-muted-foreground">No applications found. Start applying for jobs to see them here.</p>
+                  </CardContent>
+                </Card>
+              </> : <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Applications</CardTitle>
+                    <CardDescription>Track the status of your recent job applications</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {data.map((application, index) => (
+                        <div key={index} className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                              <Building2 className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                            <div className="space-y-1">
+                              <h3 className="font-medium">{application.job.jobTitle}</h3>
+                              <p className="text-sm text-muted-foreground">{application.job.companyName}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <Badge
+                                variant={
+                                  application.status === "In-review"
+                                    ? "default"
+                                    : application.status === "Rejected"
+                                      ? "destructive"
+                                      : "outline"
+                                }
+                              >
+                                {application.status}
+                              </Badge>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(application.createdAt).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                })}
+                              </p>
+                            </div>
+
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <h3 className="font-medium">{application.position}</h3>
-                          <p className="text-sm text-muted-foreground">{application.company}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <Badge
-                            variant={
-                              application.status === "Interview"
-                                ? "default"
-                                : application.status === "Rejected"
-                                  ? "destructive"
-                                  : "outline"
-                            }
-                          >
-                            {application.status}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {application.days} day{application.days !== 1 ? "s" : ""} ago
-                          </p>
-                        </div>
-                        <Link href={`/job-seeker/applications/${index + 1}`}>
-                          <Button variant="ghost" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </>
+            }
           </div>
         </main>
       </div>

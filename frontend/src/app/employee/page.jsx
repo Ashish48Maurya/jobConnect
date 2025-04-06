@@ -107,39 +107,7 @@ const applicants = [
   },
 ]
 
-// Sample job postings
-const jobPostings = [
-  {
-    id: 1,
-    title: "Senior Frontend Developer",
-    daysAgo: 1,
-    applicants: 25,
-    badges: ["Full-time", "Remote"],
-  },
-  {
-    id: 2,
-    title: "UX/UI Designer",
-    daysAgo: 2,
-    applicants: 30,
-    badges: ["Full-time", "Hybrid"],
-  },
-  {
-    id: 3,
-    title: "Backend Engineer",
-    daysAgo: 3,
-    applicants: 35,
-    badges: ["Full-time", "On-site"],
-  },
-  {
-    id: 4,
-    title: "Product Manager",
-    daysAgo: 4,
-    applicants: 40,
-    badges: ["Full-time", "Remote"],
-  },
-]
 
-// Application Viewer Modal Component
 function ApplicationViewer({ applicant }) {
   return (
     <DialogContent className="sm:max-w-[600px]">
