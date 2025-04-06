@@ -14,10 +14,15 @@ const userSchema = new Schema({
         type: String,
         required: true,
     },
-    role:{
+    role: {
         type: String,
         required: true,
     },
+    postedJob: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Job',
+        required: true,
+    }],
     createdAt: {
         type: Date,
         default: Date.now,

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import toast from "react-hot-toast"
 
 const applicants = [
   {
@@ -202,58 +203,80 @@ function ApplicationViewer({ applicant }) {
   )
 }
 
-export default function Dashboard() {
+export default function page() {
+  const [data, setData] = useState([])
   const [selectedApplicant, setSelectedApplicant] = useState(null)
+  const [loading, setLoading] = useState(false);
+
+  const getAllJobs = async () => {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/jobs`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setData(data.jobs);
+      console.log(data.jobs)
+    } else {
+      toast.error(data.message || "Failed to fetch jobs");
+    }
+  }
+
+  const handleDelete = async (jobId) => {
+    const confirmed = window.confirm("Are you sure you want to delete this job?");
+    if (!confirmed) return;
+    try {
+      setLoading(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/job/${jobId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Job deleted successfully");
+        getAllJobs()
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.log(error.message)
+      toast.error("An error occurred while deleting the job");
+    }
+    finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getAllJobs()
+  }, [])
+
+  const getDaysAgo = (createdAt) => {
+    const createdDate = new Date(createdAt);
+    const now = new Date();
+    const timeDiff = now - createdDate;
+    const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    console.log(daysAgo)
+    return daysAgo;
+  };
+
+  const isApplicationClosed = (deadline) => {
+    const now = new Date();
+    const deadlineDate = new Date(deadline);
+    return now > deadlineDate;
+  };
+
 
   return (
     <div className="flex min-h-screen bg-muted/10">
 
       {/* Main Content */}
       <div className="flex flex-col flex-1">
-        {/* Mobile Header */}
-        <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] md:hidden">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <Briefcase className="h-5 w-5 text-primary" />
-            <span>JobConnect</span>
-          </Link>
-          <div className="ml-auto flex items-center gap-4">
-            <Link href="/notifications">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute right-1 top-1 flex h-2 w-2 rounded-full bg-primary"></span>
-                <span className="sr-only">Notifications</span>
-              </Button>
-            </Link>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Avatar" />
-                    <AvatarFallback>AC</AvatarFallback>
-                  </Avatar>
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Dashboard</DropdownMenuItem>
-                <DropdownMenuItem>My Jobs</DropdownMenuItem>
-                <DropdownMenuItem>Applicants</DropdownMenuItem>
-                <DropdownMenuItem>Company Profile</DropdownMenuItem>
-                <DropdownMenuItem>Notifications</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
 
-        {/* Dashboard Content */}
         <main className="flex-1 overflow-auto p-4 md:p-6">
           <div className="mx-auto max-w-7xl space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -270,51 +293,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">12</div>
-                  <p className="text-xs text-muted-foreground">+2 from last month</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Applicants</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">342</div>
-                  <p className="text-xs text-muted-foreground">+24 in the last week</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Interviews Scheduled</CardTitle>
-                  <BarChart className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">18</div>
-                  <p className="text-xs text-muted-foreground">+5 from last week</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Positions Filled</CardTitle>
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">7</div>
-                  <p className="text-xs text-muted-foreground">+2 from last month</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Tabs for Recent Activity */}
             <Tabs defaultValue="jobs" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="jobs">Recent Job Postings</TabsTrigger>
@@ -322,70 +300,88 @@ export default function Dashboard() {
               </TabsList>
 
               <TabsContent value="jobs" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Recent Job Postings</CardTitle>
-                    <CardDescription>Your most recent job listings</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {jobPostings.map((job) => (
-                        <div
-                          key={job.id}
-                          className="flex items-center justify-between space-x-4 rounded-lg border p-4 shadow-sm"
-                        >
-                          <div className="space-y-1">
-                            <h3 className="font-medium">{job.title}</h3>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>
-                                Posted {job.daysAgo} day{job.daysAgo !== 1 ? "s" : ""} ago
-                              </span>
-                              <span>•</span>
-                              <span>{job.applicants} applicants</span>
-                            </div>
-                            <div className="flex gap-2 mt-1">
-                              {job.badges.map((badge) => (
-                                <Badge key={badge} variant="outline">
-                                  {badge}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Link href={`/employer/jobs/${job.id}`}>
-                              <Button variant="outline" size="sm">
-                                View
-                              </Button>
-                            </Link>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Actions</span>
+                {
+                  data.length === 0 ? <>
+                    <Card className="text-center p-6">
+                      <CardHeader>
+                        <CardTitle>No Job Postings Found</CardTitle>
+                        <CardDescription>You have not posted any jobs yet.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="text-muted-foreground">
+                        Click the button above to post a new job.
+                      </CardContent>
+                      <CardFooter>
+                        <Button variant="outline" className="w-full" onClick={() => router.push("/post-job")}>
+                          Post a Job
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  </> : <>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Recent Job Postings</CardTitle>
+                        <CardDescription>Your most recent job listings</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {data?.map((job) => (
+                            <div
+                              key={job._id}
+                              className="flex items-center justify-between space-x-4 rounded-lg border p-4 shadow-sm"
+                            >
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-8">
+                                  <h3 className="font-medium">{job.jobTitle}</h3>
+                                  {isApplicationClosed(job.applicationDeadline) ? (
+                                    <Badge variant="destructive">Application Closed</Badge>
+                                  ) : (
+                                    <Badge variant="outline">Open</Badge>
+                                  )}
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <span>
+                                    Posted {getDaysAgo(job.createdAt)} day{getDaysAgo(job.createdAt) !== 1 ? "s" : ""} ago
+                                  </span>
+                                  <span>•</span>
+                                  <span>{job.participants?.length} applicants</span>
+                                </div>
+                                <div className="flex gap-2 mt-1">
+
+                                  <Badge variant="outline">
+                                    {job.jobType}
+                                  </Badge>
+                                  <Badge variant="outline">
+                                    {job.locationType}
+                                  </Badge>
+
+                                </div>
+
+                                <p className="text-sm text-muted-foreground">
+                                  Deadline: {new Date(job.applicationDeadline).toLocaleDateString()}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <Link href={`/edit-job/${job._id}`}>
+                                  <Button variant="outline" size="sm">
+                                    Edit
+                                  </Button>
+                                </Link>
+                                <Button variant="destructive" size="sm" onClick={() => handleDelete(job._id)} disabled={loading}>
+                                  {
+                                    loading ? "Deleting..." : "Delete"
+                                  }
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Edit Job</DropdownMenuItem>
-                                <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                <DropdownMenuItem>Archive</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Link href="/employer/jobs" className="w-full">
-                      <Button variant="outline" className="w-full">
-                        View All Jobs
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </CardFooter>
-                </Card>
+                      </CardContent>
+
+                    </Card>
+                  </>
+                }
               </TabsContent>
 
               <TabsContent value="applicants" className="space-y-4">
@@ -426,14 +422,7 @@ export default function Dashboard() {
                       ))}
                     </div>
                   </CardContent>
-                  <CardFooter>
-                    <Link href="/employer/applicants" className="w-full">
-                      <Button variant="outline" className="w-full">
-                        View All Applicants
-                        <ChevronRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </CardFooter>
+
                 </Card>
               </TabsContent>
             </Tabs>

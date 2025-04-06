@@ -5,10 +5,12 @@ const mongoConnect = require('./db')
 const PORT = 8000 || process.env.PORT;
 const cors = require("cors");
 const userRoutes = require("./routes/user")
+const jobRoutes = require("./routes/job")
 
 app.use(cors())
 app.use(express.json())
 app.use('/api/user',userRoutes)
+app.use('/api',jobRoutes)
 
 app.listen(PORT, async() => {
     await mongoConnect(process.env.MONGO_URL);
