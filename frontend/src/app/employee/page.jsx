@@ -60,7 +60,6 @@ function ApplicationViewer({ applicant, listParticipants }) {
         baseURL: process.env.NEXT_PUBLIC_URL,
       }),
     })
-
     const data = await response.json()
     if (response.ok) {
       toast.success(data.message)
@@ -211,67 +210,6 @@ function ApplicationViewer({ applicant, listParticipants }) {
       </DialogFooter>
     </DialogContent>
   )
-
-  // return (
-  //   <DialogContent className="sm:max-w-[600px]">
-  //     <DialogHeader>
-  //       <DialogTitle className="flex items-center gap-2">
-  //         <Avatar className="h-8 w-8">
-  //           <AvatarImage alt={applicant.name} />
-  //           <AvatarFallback>
-  //             {applicant.name
-  //               .split(" ")
-  //               .map((n) => n[0])
-  //               .join("")}
-  //           </AvatarFallback>
-  //         </Avatar>
-  //         <span>{applicant.name}</span>
-  //       </DialogTitle>
-  //       <DialogDescription>
-  //         Applied for: {applicant.jobTitle} • {new Date(applicant.appliedAt).toLocaleString()}
-  //       </DialogDescription>
-  //     </DialogHeader>
-  //     <ScrollArea className="max-h-[60vh]">
-  //       <div className="space-y-6 px-1 py-2">
-  //         <div>
-  //           <h3 className="text-sm font-medium text-primary mb-2">Tell me about yourself</h3>
-  //           <p className="text-sm text-muted-foreground">{applicant.description}</p>
-  //         </div>
-  //         <Separator />
-  //         <div>
-  //           <h3 className="text-sm font-medium text-primary mb-2">Relevant Experience</h3>
-  //           <pre className="text-sm text-muted-foreground whitespace-pre-line">{applicant.experience}</pre>
-  //         </div>
-  //         <Separator />
-  //         <div>
-  //           <h3 className="text-sm font-medium text-primary mb-2">Resume</h3>
-  //           <div className="border rounded-lg p-4 bg-muted/30 flex items-center justify-between">
-  //             <div className="flex items-center gap-2">
-  //               <FileText className="h-5 w-5 text-muted-foreground" />
-  //               <span className="text-sm">{applicant.name} - Resume.pdf</span>
-  //             </div>
-  //             <a href={applicant.resume} download target="_blank" rel="noopener noreferrer">
-  //               <Button variant="outline" size="sm">
-  //                 <Download className="h-4 w-4 mr-2" />
-  //                 Download
-  //               </Button>
-  //             </a>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </ScrollArea>
-  //     <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
-  //       <Button variant="destructive" onClick={() => reject(applicant.jobId, applicant.applicantId)} disabled={loading1} className="sm:mr-auto">
-  //         {loading1 ? "Rejecting..." : "Reject Application"}
-  //       </Button>
-  //       <div className="flex gap-2">
-  //         <Button onClick={() => accept(applicant.jobId, applicant.applicantId)} disabled={loading}>{
-  //           loading ? "Accepting..." : "Accept Application"}
-  //         </Button>
-  //       </div>
-  //     </DialogFooter>
-  //   </DialogContent>
-  // )
 }
 
 export default function page() {

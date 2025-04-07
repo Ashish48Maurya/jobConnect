@@ -54,7 +54,7 @@ const sendRejectionEmail = async (email, name, role) => {
     const mailOptions = {
         from: process.env.GMAIL,
         to: email,
-        subject: 'Application Accepted',
+        subject: 'Application Rejected',
         html: getEmailHtml(name, role),
     };
 
