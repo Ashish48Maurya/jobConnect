@@ -102,32 +102,55 @@ const updateJob = async (req, res) => {
 };
 
 const deleteJob = async (req, res) => {
-    const userID = req.userID;
-    const user = await User.findById(userID);
-
-    if (!user) {
+    try {
+      const userID = req.userID;
+      const user = await User.findById(userID);
+  
+      if (!user) {
         return res.status(404).json({ message: "User not found" });
-    }
-
-    if (user.role !== "employer") {
-        return res.status(401).json({ message: "You are not authorized to edit a job" });
-    }
-    const job = await Job.findById(req.params.id);
-    if (!job) {
+      }
+  
+      if (user.role !== "employer") {
+        return res.status(401).json({ message: "You are not authorized to delete a job" });
+      }
+  
+      const jobId = req.params.id;
+      const job = await Job.findById(jobId);
+  
+      if (!job) {
         return res.status(404).json({ message: "Job not found" });
+      }
+  
+      const postedJobIds = user.postedJob.map(id => id.toString());
+      if (!postedJobIds.includes(jobId.toString())) {
+        return res.status(403).json({ message: "You are not authorized to delete this job" });
+      }
+  
+      const participants = await Applicant.find({ job: jobId });
+  
+      for (const participant of participants) {
+        const applicantUser = await User.findById(participant.user);
+        if (applicantUser) {
+          applicantUser.applied_job = applicantUser.applied_job.filter(
+            appId => appId.toString() !== jobId.toString()
+          );
+          await applicantUser.save();
+        }
+        await Applicant.findByIdAndDelete(participant._id);
+      }
+  
+      await Job.findByIdAndDelete(jobId);
+      user.postedJob = user.postedJob.filter(id => id.toString() !== jobId.toString());
+      await user.save();
+  
+      return res.status(200).json({ message: "Job and related applicants deleted successfully" });
+  
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      return res.status(500).json({ message: "Something went wrong. Please try again." });
     }
-    const postedJobIds = user.postedJob.map(id => id.toString());
-    if (!postedJobIds.includes(req.params.id.toString())) {
-        return res.status(403).json({ message: "You are not authorized to edit this job" });
-    }
-    await Job.findByIdAndDelete(req.params.id);
-    const index = user.postedJob.indexOf(req.params.id);
-    if (index > -1) {
-        user.postedJob.splice(index, 1);
-    }
-    await user.save();
-    return res.status(200).json({ message: "Job deleted successfully" });
-}
+  };
+  
 
 const getAllJobs = async (req, res) => {
     try {
@@ -195,7 +218,7 @@ const getAppliedJobs = async (req, res) => {
         }
 
         if (!user.applied_job || user.applied_job.length === 0) {
-            return res.status(200).json({ message: 'No applied jobs found', jobs: [] });
+            return res.status(200).json({ message: 'No applied jobs found ', jobs: [] });
         }
 
         const applied_jobs = await Promise.all(
@@ -214,7 +237,6 @@ const getAppliedJobs = async (req, res) => {
                 return job;
             })
         );
-
 
         return res.status(200).json({
             message: 'Applied jobs fetched successfully',
@@ -281,7 +303,7 @@ const listParticipants = async (req, res) => {
 
 const acceptApplication = async (req, res) => {
     const userID = req.userID;
-    const {email,name,role} = req.body
+    const {email,name,role, scheduledDateTime, baseURL} = req.body
     try {
         const user = await User.findById(userID);
 
@@ -298,6 +320,8 @@ const acceptApplication = async (req, res) => {
             return res.status(404).json({ message: "Job not found" });
         }
         const applicantId = req.params.applicantId.toString();
+        const meetId = applicantId.substring(0, applicantId.length / 2) + jobId.substring(0, jobId.length / 2);
+
         const applicant = await Applicant.findById(applicantId);
         if (!applicant) {
             return res.status(404).json({ message: "Applicant not found" });
@@ -306,8 +330,9 @@ const acceptApplication = async (req, res) => {
             return res.status(400).json({ message: "Applicant already accepted" });
         }
         applicant.status = "Accepted";
+        applicant.meetId = meetId;
         await applicant.save();
-        await sendAcceptanceEmail(email, name, role)
+        await sendAcceptanceEmail(email, name, role, scheduledDateTime,meetId,baseURL)
 
         return res.status(200).json({ message: "Application accepted and email sent successfully " });
     } catch (err) {

@@ -21,18 +21,6 @@ export default function Home() {
                 <p className="text-muted-foreground md:text-xl max-w-[600px]">
                   Thousands of jobs from top companies. Find opportunities that match your skills and aspirations.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/jobs" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full gap-2">
-                      Find Jobs <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Link href="/post-job" className="w-full sm:w-auto">
-                    <Button variant="outline" size="lg" className="w-full">
-                      Post a Job
-                    </Button>
-                  </Link>
-                </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <CheckCircle className="h-4 w-4 text-primary" />
@@ -248,15 +236,6 @@ export default function Home() {
                   Create an Account <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/contact">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="bg-transparent text-primary-foreground border-primary-foreground hover:bg-primary-foreground/10"
-                >
-                  Learn More
-                </Button>
-              </Link>
             </div>
           </div>
         </section>
@@ -268,20 +247,6 @@ export default function Home() {
               <Briefcase className="h-6 w-6" />
               <span>JobConnect</span>
             </div>
-            <nav className="flex gap-6">
-              <Link href="/jobs" className="text-sm font-medium hover:underline underline-offset-4">
-                Jobs
-              </Link>
-              <Link href="/employee" className="text-sm font-medium hover:underline underline-offset-4">
-                Dashborad
-              </Link>
-              <Link href="/post-job" className="text-sm font-medium hover:underline underline-offset-4">
-                Post Job
-              </Link>
-              <Link href="/job-seeker" className="text-sm font-medium hover:underline underline-offset-4">
-                My Applications
-              </Link>
-            </nav>
           </div>
           <div className="flex flex-col md:flex-row gap-6 md:gap-0 md:justify-between">
             <p className="text-sm text-muted-foreground">

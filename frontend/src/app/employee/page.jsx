@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Calendar } from "@/components/ui/calendar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, FileText, Download } from "lucide-react"
 import {
   Dialog,
@@ -18,15 +21,31 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import toast from "react-hot-toast"
 
 function ApplicationViewer({ applicant, listParticipants }) {
   const [loading, setLoading] = useState(false)
   const [loading1, setLoading1] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedTime, setSelectedTime] = useState("09:00")
+
+  // Generate time options in 30-minute intervals
+  const timeOptions = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2)
+    const minute = i % 2 === 0 ? "00" : "30"
+    const formattedHour = hour.toString().padStart(2, "0")
+    return `${formattedHour}:${minute}`
+  })
 
   const accept = async (jobId, applicantId) => {
-    setLoading(true);
+    setLoading(true)
+
+    // Combine date and time
+    const dateTime = new Date(selectedDate)
+    const [hours, minutes] = selectedTime.split(":").map(Number)
+    dateTime.setHours(hours, minutes, 0, 0)
+
     const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/accept-application/${jobId}/${applicantId}`, {
       method: "POST",
       headers: {
@@ -37,21 +56,25 @@ function ApplicationViewer({ applicant, listParticipants }) {
         email: applicant.email,
         name: applicant.name,
         role: applicant.jobTitle,
-      })
+        scheduledDateTime: dateTime.toISOString(),
+        baseURL: process.env.NEXT_PUBLIC_URL,
+      }),
     })
+
     const data = await response.json()
     if (response.ok) {
       toast.success(data.message)
-      setLoading(false);
+      setLoading(false)
+      setShowCalendar(false)
       listParticipants()
     } else {
-      setLoading(false);
+      setLoading(false)
       toast.error(data.message)
     }
   }
 
   const reject = async (jobId, applicantId) => {
-    setLoading1(true);
+    setLoading1(true)
     const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/reject-application/${jobId}/${applicantId}`, {
       method: "POST",
       headers: {
@@ -62,15 +85,15 @@ function ApplicationViewer({ applicant, listParticipants }) {
         email: applicant.email,
         name: applicant.name,
         role: applicant.jobTitle,
-      })
+      }),
     })
     const data = await response.json()
     if (response.ok) {
       toast.success(data.message)
-      setLoading1(false);
+      setLoading1(false)
       listParticipants()
     } else {
-      setLoading1(false);
+      setLoading1(false)
       toast.error(data.message)
     }
   }
@@ -123,18 +146,132 @@ function ApplicationViewer({ applicant, listParticipants }) {
           </div>
         </div>
       </ScrollArea>
+
+      {showCalendar && (
+        <div className="border rounded-lg p-4">
+          <div className="flex flex-col space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="date-input" className="text-sm font-medium">
+                Select Interview Date and Timing:
+              </label>
+              <input
+                id="date-input"
+                type="date"
+                className="w-full rounded-md border border-input bg-background px-3 py-2"
+                value={selectedDate.toISOString().split("T")[0]}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value) : new Date()
+                  setSelectedDate(date)
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-sm text-muted-foreground">Time:</span>
+              <Select value={selectedTime} onValueChange={setSelectedTime}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Select time" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeOptions.map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+      )}
+
       <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
-        <Button variant="destructive" onClick={() => reject(applicant.jobId, applicant.applicantId)} disabled={loading1} className="sm:mr-auto">
+        <Button
+          variant="destructive"
+          onClick={() => reject(applicant.jobId, applicant.applicantId)}
+          disabled={loading1 || showCalendar}
+          className="sm:mr-auto"
+        >
           {loading1 ? "Rejecting..." : "Reject Application"}
         </Button>
         <div className="flex gap-2">
-          <Button onClick={() => accept(applicant.jobId, applicant.applicantId)} disabled={loading}>{
-            loading ? "Accepting..." : "Accept Application"}
-          </Button>
+          {showCalendar ? (
+            <>
+              <Button variant="outline" onClick={() => setShowCalendar(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => accept(applicant.jobId, applicant.applicantId)} disabled={loading}>
+                {loading ? "Scheduling..." : "Confirm"}
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => setShowCalendar(true)}>Accept Application</Button>
+          )}
         </div>
       </DialogFooter>
     </DialogContent>
   )
+
+  // return (
+  //   <DialogContent className="sm:max-w-[600px]">
+  //     <DialogHeader>
+  //       <DialogTitle className="flex items-center gap-2">
+  //         <Avatar className="h-8 w-8">
+  //           <AvatarImage alt={applicant.name} />
+  //           <AvatarFallback>
+  //             {applicant.name
+  //               .split(" ")
+  //               .map((n) => n[0])
+  //               .join("")}
+  //           </AvatarFallback>
+  //         </Avatar>
+  //         <span>{applicant.name}</span>
+  //       </DialogTitle>
+  //       <DialogDescription>
+  //         Applied for: {applicant.jobTitle} • {new Date(applicant.appliedAt).toLocaleString()}
+  //       </DialogDescription>
+  //     </DialogHeader>
+  //     <ScrollArea className="max-h-[60vh]">
+  //       <div className="space-y-6 px-1 py-2">
+  //         <div>
+  //           <h3 className="text-sm font-medium text-primary mb-2">Tell me about yourself</h3>
+  //           <p className="text-sm text-muted-foreground">{applicant.description}</p>
+  //         </div>
+  //         <Separator />
+  //         <div>
+  //           <h3 className="text-sm font-medium text-primary mb-2">Relevant Experience</h3>
+  //           <pre className="text-sm text-muted-foreground whitespace-pre-line">{applicant.experience}</pre>
+  //         </div>
+  //         <Separator />
+  //         <div>
+  //           <h3 className="text-sm font-medium text-primary mb-2">Resume</h3>
+  //           <div className="border rounded-lg p-4 bg-muted/30 flex items-center justify-between">
+  //             <div className="flex items-center gap-2">
+  //               <FileText className="h-5 w-5 text-muted-foreground" />
+  //               <span className="text-sm">{applicant.name} - Resume.pdf</span>
+  //             </div>
+  //             <a href={applicant.resume} download target="_blank" rel="noopener noreferrer">
+  //               <Button variant="outline" size="sm">
+  //                 <Download className="h-4 w-4 mr-2" />
+  //                 Download
+  //               </Button>
+  //             </a>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </ScrollArea>
+  //     <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0">
+  //       <Button variant="destructive" onClick={() => reject(applicant.jobId, applicant.applicantId)} disabled={loading1} className="sm:mr-auto">
+  //         {loading1 ? "Rejecting..." : "Reject Application"}
+  //       </Button>
+  //       <div className="flex gap-2">
+  //         <Button onClick={() => accept(applicant.jobId, applicant.applicantId)} disabled={loading}>{
+  //           loading ? "Accepting..." : "Accept Application"}
+  //         </Button>
+  //       </div>
+  //     </DialogFooter>
+  //   </DialogContent>
+  // )
 }
 
 export default function page() {
@@ -255,11 +392,17 @@ export default function page() {
                       <CardContent className="text-muted-foreground">
                         Click the button above to post a new job.
                       </CardContent>
-                      <CardFooter>
-                        <Button variant="outline" className="w-full" onClick={() => router.push("/post-job")}>
-                          Post a Job
-                        </Button>
+                      <CardFooter className="p-4">
+                        <Link href="/post-job" className="w-full">
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                          >
+                            Post a Job
+                          </Button>
+                        </Link>
                       </CardFooter>
+
                     </Card>
                   </>
                 ) : (
@@ -288,9 +431,12 @@ export default function page() {
 
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <span>
-                                    Posted {getDaysAgo(job.createdAt)} day{getDaysAgo(job.createdAt) !== 1 ? "s" : ""}{" "}
-                                    ago
+                                    {`Posted ${getDaysAgo(job.createdAt) === 0
+                                      ? "Today"
+                                      : `${getDaysAgo(job.createdAt)} day${getDaysAgo(job.createdAt) !== 1 ? "s" : ""} ago`
+                                      }`}
                                   </span>
+
                                   <span>•</span>
                                   <span>{job.participants?.length} applicants</span>
                                 </div>

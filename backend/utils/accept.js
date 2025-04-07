@@ -1,5 +1,6 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
-const getEmailHtml = (name, role) => `
+const getEmailHtml = (name, role, formattedDateTime, meetId, baseURL) => `
 <!DOCTYPE html>
 <html>
   <head>
@@ -41,7 +42,9 @@ const getEmailHtml = (name, role) => `
         Our team was very impressed with your background and experience, and we are excited to move forward with you.
       </p>
       <p>
-        Someone from our team will be in touch shortly to guide you through the next steps.
+         <a href="${baseURL}/connect/${meetId}" class="btn">
+          Join the Meeting at ${formattedDateTime}
+        </a>
       </p>
       <p style="margin-top: 30px;">Best regards,<br />The Hiring Team</p>
     </div>
@@ -61,12 +64,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendAcceptanceEmail = async (email, name, role) => {
+const sendAcceptanceEmail = async (email, name, role, scheduledDateTime, meetId,baseURL) => {
+
+  const formattedDateTime = new Date(scheduledDateTime).toLocaleString("en-US", {
+    weekday: "long",    
+    year: "numeric",    
+    month: "long",    
+    day: "numeric",     
+    hour: "numeric",   
+    minute: "2-digit",  
+    hour12: true        
+  });
+
   const mailOptions = {
     from: process.env.GMAIL,
     to: email,
     subject: 'Application Accepted',
-    html: getEmailHtml(name, role),
+    html: getEmailHtml(name, role,formattedDateTime, meetId,baseURL),
   };
 
   try {

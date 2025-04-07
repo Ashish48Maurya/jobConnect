@@ -25,7 +25,7 @@ const userSchema = new Schema({
     }],
     applied_job: [{
         type: Schema.Types.ObjectId,
-        ref: 'Applicant',
+        ref: 'Job',
         required: true,
     }],
     createdAt: {

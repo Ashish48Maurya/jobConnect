@@ -18,6 +18,11 @@ const applicantSchema = new Schema({
         type: String,
         default: "in-review",
     },
+    meetId: {
+        type: String,
+        required: true,
+        default: null,
+    },
     user: {
         type: Schema.Types.ObjectId,
         ref: 'User',
