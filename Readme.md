@@ -68,6 +68,11 @@ Create a `.env.local` file and add the following:
 NEXT_PUBLIC_SERVER_URL=http://localhost:8000/api
 NEXT_PUBLIC_UPLOAD_PRESETS=jobConnect
 NEXT_PUBLIC_CLOUD_NAME=dzgtgpypu
+NEXT_PUBLIC_URL=http://localhost:3000
+NEXT_PUBLIC_ID=1888590579
+NEXT_PUBLIC_SERVER=6189efc8d0662bf01529435c78854150
+
+
 ```
 
 ### Install dependencies:
