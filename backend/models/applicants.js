@@ -20,7 +20,6 @@ const applicantSchema = new Schema({
     },
     meetId: {
         type: String,
-        required: true,
         default: null,
     },
     user: {

@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, FileText, Download } from "lucide-react"
 import {
@@ -30,7 +29,6 @@ function ApplicationViewer({ applicant, listParticipants }) {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [selectedTime, setSelectedTime] = useState("09:00")
 
-  // Generate time options in 30-minute intervals
   const timeOptions = Array.from({ length: 48 }, (_, i) => {
     const hour = Math.floor(i / 2)
     const minute = i % 2 === 0 ? "00" : "30"
@@ -227,6 +225,7 @@ export default function page() {
     })
     const data = await response.json()
     if (response.ok) {
+      console.log(data.jobs[0].participants)
       setParticipant(data.jobs[0].participants)
     } else {
       toast.error(data.message || "Failed to fetch jobs")
@@ -471,6 +470,11 @@ export default function page() {
                               </DialogTrigger>
                               <ApplicationViewer applicant={applicant} listParticipants={listParticipants} />
                             </Dialog>
+                            {
+                              applicant.status === "Accepted" && <Link href={`/connect/${applicant?.meetId}`} className="text-sm text-blue-500 hover:underline">
+                                <Button>Join Interview</Button>
+                              </Link>
+                            }
                           </div>
                         ))}
                       </CardContent>

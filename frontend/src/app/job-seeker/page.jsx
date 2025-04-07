@@ -36,7 +36,6 @@ export default function page() {
     const data = await response.json()
     if (response.ok) {
       setData(data.jobs)
-      console.log(data.jobs)
     } else {
       toast.error(data.message)
     }
@@ -96,6 +95,11 @@ export default function page() {
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
+                            {
+                              application.meetId && <Link href={`/connect/${application.meetId}`} className="text-sm text-blue-500 hover:underline">
+                                <Button>Join Interview</Button>
+                              </Link>
+                            }
                             <div className="text-right">
                               <Badge
                                 variant={

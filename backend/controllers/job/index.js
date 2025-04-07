@@ -233,7 +233,7 @@ const getAppliedJobs = async (req, res) => {
                 const job = await Applicant.findOne({ job: jobId, user: userID })
                     .populate('job', 'jobTitle companyName')
                     .populate('user', 'name email')
-                    .select('status createdAt');
+                    .select('status createdAt meetId');
                 return job;
             })
         );
@@ -268,7 +268,7 @@ const listParticipants = async (req, res) => {
                 const applicants = await Applicant.find({ job: jobId })
                     .populate('user', 'name email')
                     .populate('job', 'jobTitle')
-                    .select('status createdAt desc exp resume');
+                    .select('status createdAt desc exp resume meetId');
 
                 return {
                     participants: applicants.map(app => ({
@@ -282,6 +282,7 @@ const listParticipants = async (req, res) => {
                         experience: app.exp,
                         resume: app.resume,
                         applicantId: app._id,
+                        meetId: app.meetId,
                     }))
                 };
             })
